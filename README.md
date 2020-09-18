@@ -1,2 +1,2 @@
-# maskutil
+# mask-util
 Classes utilitaires
