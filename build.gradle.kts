@@ -1,3 +1,4 @@
+val quarkusVersion: String = "1.5.2.Final"
 
 plugins {
     kotlin("jvm") version "1.4.10"
@@ -7,7 +8,7 @@ plugins {
 }
 
 group = "fr.convergence.proddoc.lib"
-version = "1.0.0-SNAPSHOT"
+version = "1.0.1-SNAPSHOT"
 
 val myMavenRepoUser = "myMavenRepo"
 val myMavenRepoPassword ="mask"
@@ -45,6 +46,10 @@ publishing {
 
 dependencies {
     implementation("fr.convergence.proddoc.lib:mask-model:1.0.0-SNAPSHOT")
+
+    implementation(enforcedPlatform("io.quarkus:quarkus-bom:$quarkusVersion"))
+    implementation("io.quarkus:quarkus-rest-client") // pour javax.ws
+    implementation("io.quarkus:quarkus-vertx-web") // pour io.vertx.reactivex
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.2")
     testImplementation("org.assertj:assertj-core:3.12.2")
