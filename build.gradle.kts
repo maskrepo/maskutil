@@ -48,8 +48,9 @@ dependencies {
     implementation("fr.convergence.proddoc.lib:mask-model:1.0.0-SNAPSHOT")
 
     implementation(enforcedPlatform("io.quarkus:quarkus-bom:$quarkusVersion"))
-    implementation("io.quarkus:quarkus-rest-client") // pour javax.ws
+    implementation("io.quarkus:quarkus-rest-client")
     implementation("io.quarkus:quarkus-vertx-web") // pour io.vertx.reactivex
+    implementation("io.quarkus:quarkus-smallrye-reactive-messaging-kafka:$quarkusVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.2")
     testImplementation("org.assertj:assertj-core:3.12.2")
