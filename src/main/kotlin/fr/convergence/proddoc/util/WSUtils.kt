@@ -6,9 +6,6 @@ import io.vertx.reactivex.core.Vertx
 import io.vertx.reactivex.core.buffer.Buffer
 import io.vertx.reactivex.ext.web.client.HttpResponse
 import io.vertx.reactivex.ext.web.client.WebClient
-import java.io.ByteArrayInputStream
-import java.io.File
-import java.io.IOException
 import java.net.URI
 import java.util.concurrent.TimeoutException
 import javax.enterprise.context.ApplicationScoped
@@ -23,9 +20,17 @@ object WSUtils {
 
     private fun creerURLApplimyGreffe() :String {
 
-        // val baseURL = "http://172.31.4.97:8880"
-        val baseURL = "http://127.0.0.1:3001"
+        val baseURL = "http://172.31.4.97:8880"
+//        val baseURL = "http://127.0.0.1:3001"
         val pathURL = "/convergence-greffe-web/rest"
+
+        return (baseURL + pathURL)
+    }
+
+    private fun creerURLCondor() :String {
+
+        val baseURL = "http://localhost:8090"
+        val pathURL = ""
 
         return (baseURL + pathURL)
     }
@@ -55,6 +60,31 @@ object WSUtils {
             TypeRetourWS.POINTEUR ->{uriString+="/recupererPointeur"}
         }
 
+        val uriWSmyGreffe :URI
+        val builder = UriBuilder.fromUri(uriString)
+        // parcourir la Map des paramètresp our les ajouter à l'URI :
+        for (param in parametresRequete) {
+            builder.queryParam(param.key, param.value)
+        }
+
+        // 2) appeler le service en fonction du retour attendu
+        uriWSmyGreffe = builder.build()
+        LOG.debug("uriWSmyGreffe : $uriWSmyGreffe")
+
+        // 3) répondre à l'appelant
+        return (uriWSmyGreffe)
+    }
+
+    /**
+     * Fabrique une URI à partir d'un path et d'une map de paramètres éventuels
+     * Attention l'URL de base (le host) est définie ailleurs c'est supposé est un paramètre applicatif
+     * @TODO il y a du code dupliqué à réarranger
+     */
+    fun fabriqueURIServiceProdDoc(pathDuService :String,parametresRequete :Map<String, String> ) :URI
+    {
+
+        // 1) fabriquer l'URI à partir des paramètres fournis en entrée
+        val uriString =  creerURLCondor() +pathDuService
         val uriWSmyGreffe :URI
         val builder = UriBuilder.fromUri(uriString)
         // parcourir la Map des paramètresp our les ajouter à l'URI :

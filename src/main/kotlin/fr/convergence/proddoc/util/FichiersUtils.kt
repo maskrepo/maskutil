@@ -32,4 +32,43 @@ object FichiersUtils {
         }
     }
 
+    /**
+     *    crée un fichier temporaire à partir d'un java.io.file
+     *    et retourne un objet fichier
+     */
+    fun creeFichierTemp(fichier: File): File {
+        try {
+            LOG.debug("Début création du fichier binaire temporaire")
+            val fichierTemp = createTempFile(suffix = ".pdf")
+            fichierTemp.writeBytes(fichier.readBytes())
+            LOG.debug("Fin création du fichier binaire temporaire")
+            return (fichierTemp)
+        } catch (e: java.lang.Exception) {
+            if (e is IOException) {
+                throw (IllegalStateException("Problème d'écriture sur disque", e))
+            } else {
+                throw e
+            }
+        }
+    }
+
+    /**
+     *    crée un fichier temporaire à partir d'un java.io.file
+     *    et retourne un objet fichier
+     */
+    fun creeFichierTempByteArray(fichier: ByteArray): File {
+        try {
+            LOG.debug("Début création du fichier binaire temporaire")
+            val fichierTemp = createTempFile(suffix = ".pdf")
+            fichierTemp.writeBytes(fichier)
+            LOG.debug("Fin création du fichier binaire temporaire")
+            return (fichierTemp)
+        } catch (e: java.lang.Exception) {
+            if (e is IOException) {
+                throw (IllegalStateException("Problème d'écriture sur disque", e))
+            } else {
+                throw e
+            }
+        }
+    }
 }
