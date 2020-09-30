@@ -2,9 +2,7 @@ package fr.convergence.proddoc.util
 
 import io.vertx.core.logging.Logger
 import io.vertx.core.logging.LoggerFactory
-import java.io.ByteArrayInputStream
-import java.io.File
-import java.io.IOException
+import java.io.*
 import javax.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
@@ -69,6 +67,19 @@ object FichiersUtils {
             } else {
                 throw e
             }
+        }
+    }
+
+    /**
+     * met un inputStream dans un fichier
+     * le streaming c'est bon pour la mémoire
+     */
+    fun copyInputStreamToFile(entree : InputStream, fichier :File) {
+        try {
+            val sortie = FileOutputStream(fichier)
+            entree.transferTo(sortie)
+        } catch (ioException: IOException) {
+            ioException.printStackTrace()
         }
     }
 }

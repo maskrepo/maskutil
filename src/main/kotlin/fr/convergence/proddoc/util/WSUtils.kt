@@ -6,10 +6,13 @@ import io.vertx.reactivex.core.Vertx
 import io.vertx.reactivex.core.buffer.Buffer
 import io.vertx.reactivex.ext.web.client.HttpResponse
 import io.vertx.reactivex.ext.web.client.WebClient
+import java.io.InputStream
 import java.net.URI
 import java.util.concurrent.TimeoutException
 import javax.enterprise.context.ApplicationScoped
 import javax.ws.rs.NotFoundException
+import javax.ws.rs.client.ClientBuilder
+import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.UriBuilder
 
@@ -20,8 +23,8 @@ object WSUtils {
 
     private fun creerURLApplimyGreffe() :String {
 
-        val baseURL = "http://172.31.4.97:8880"
-//        val baseURL = "http://127.0.0.1:3001"
+//        val baseURL = "http://172.31.4.97:8880"
+        val baseURL = "http://127.0.0.1:3001"
         val pathURL = "/convergence-greffe-web/rest"
 
         return (baseURL + pathURL)
@@ -149,5 +152,13 @@ object WSUtils {
         }
 
         return retourWS
+    }
+
+    fun getOctetStreamREST(urlAbs: String) :InputStream {
+        return ( ClientBuilder.newClient()
+                                .target(urlAbs)
+                                .request(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                                .get(InputStream::class.java)
+                )
     }
 }
