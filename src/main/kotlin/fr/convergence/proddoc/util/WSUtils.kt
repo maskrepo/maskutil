@@ -23,8 +23,8 @@ object WSUtils {
 
     private fun creerURLApplimyGreffe() :String {
 
-//        val baseURL = "http://172.31.4.97:8880"
-        val baseURL = "http://127.0.0.1:3001"
+        val baseURL = "http://172.31.4.97:8880"
+//        val baseURL = "http://127.0.0.1:3001"
         val pathURL = "/convergence-greffe-web/rest"
 
         return (baseURL + pathURL)
@@ -154,6 +154,9 @@ object WSUtils {
         return retourWS
     }
 
+    /**
+     * prend une URL et retourne un InputStream
+     */
     fun getOctetStreamREST(urlAbs: String) :InputStream {
         return ( ClientBuilder.newClient()
                                 .target(urlAbs)
