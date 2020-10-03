@@ -69,17 +69,4 @@ object FichiersUtils {
             }
         }
     }
-
-    /**
-     * met un inputStream dans un fichier
-     * le streaming c'est bon pour la mémoire
-     */
-    fun copyInputStreamToFile(entree : InputStream, fichier :File) {
-        try {
-            val sortie = FileOutputStream(fichier)
-            entree.transferTo(sortie)
-        } catch (ioException: IOException) {
-            ioException.printStackTrace()
-        }
-    }
 }
