@@ -15,38 +15,8 @@ object FichiersUtils {
      *    et retourne un objet fichier
      */
     fun creeFichierTempBinaire(fichier: ByteArrayInputStream): File {
-        try {
-            LOG.debug("Début création du fichier binaire temporaire")
-            val fichierTemp = createTempFile(suffix = ".pdf")
-            fichierTemp.writeBytes(fichier.readBytes())
-            LOG.debug("Fin création du fichier binaire temporaire")
-            return (fichierTemp)
-        } catch (e: java.lang.Exception) {
-            if (e is IOException) {
-                throw (IllegalStateException("Problème d'écriture sur disque", e))
-            } else {
-                throw e
-            }
-        }
-    }
-
-    /**
-     *    crée un fichier temporaire à partir d'un java.io.file
-     *    et retourne un objet fichier
-     */
-    fun creeFichierTemp(fichier: File): File {
-        try {
-            LOG.debug("Début création du fichier binaire temporaire")
-            val fichierTemp = createTempFile(suffix = ".pdf")
-            fichierTemp.writeBytes(fichier.readBytes())
-            LOG.debug("Fin création du fichier binaire temporaire")
-            return (fichierTemp)
-        } catch (e: java.lang.Exception) {
-            if (e is IOException) {
-                throw (IllegalStateException("Problème d'écriture sur disque", e))
-            } else {
-                throw e
-            }
+        return internalCreeFichierTempBinaire {
+            it.writeBytes(fichier.readBytes())
         }
     }
 
@@ -55,33 +25,35 @@ object FichiersUtils {
      *    et retourne un objet fichier
      */
     fun creeFichierTempByteArray(fichier: ByteArray): File {
+        return internalCreeFichierTempBinaire {
+            it.writeBytes(fichier)
+        }
+    }
+
+    /**
+     *    crée un fichier temporaire à partir d'un java.io.file
+     *    et retourne un objet fichier
+     */
+    fun creeFichierTemp(fichier: File): File {
+        return internalCreeFichierTempBinaire {
+            it.writeBytes(fichier.readBytes())
+        }
+    }
+
+    private fun internalCreeFichierTempBinaire(block: (File) -> Unit): File {
         try {
             LOG.debug("Début création du fichier binaire temporaire")
             val fichierTemp = createTempFile(suffix = ".pdf")
-            fichierTemp.writeBytes(fichier)
+            LOG.debug("Nom du fichier binaire temporaire : ${fichierTemp.name}")
+            block.invoke(fichierTemp)
             LOG.debug("Fin création du fichier binaire temporaire")
-            return (fichierTemp)
+            return fichierTemp
         } catch (e: java.lang.Exception) {
             if (e is IOException) {
                 throw (IllegalStateException("Problème d'écriture sur disque", e))
             } else {
                 throw e
             }
-        }
-    }
-
-    /**
-     * met un inputStream dans un fichier
-     * le streaming c'est bon pour la mémoire
-     */
-    fun copyInputStreamToFile(entree: InputStream, fichier: File) {
-        try {
-            val sortie = FileOutputStream(fichier)
-            entree.transferTo(sortie)
-        } catch (ioException: IOException) {
-            throw ioException
-        } catch (e: Exception) {
-            throw e
         }
     }
 
