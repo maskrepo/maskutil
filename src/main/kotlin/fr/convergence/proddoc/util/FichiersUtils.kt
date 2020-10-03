@@ -69,4 +69,37 @@ object FichiersUtils {
             }
         }
     }
+
+    /**
+     * met un inputStream dans un fichier
+     * le streaming c'est bon pour la mémoire
+     */
+    fun copyInputStreamToFile(entree: InputStream, fichier: File) {
+        try {
+            val sortie = FileOutputStream(fichier)
+            entree.transferTo(sortie)
+        } catch (ioException: IOException) {
+            throw ioException
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    /**
+     * met un inputStream dans un fichier
+     * le streaming c'est bon pour la mémoire
+     */
+    fun copyInputStreamToTempFile(entree: InputStream, identifiantFichier: String): File {
+        try {
+            val fichierTemp = createTempFile(identifiantFichier, suffix = ".fic")
+            val sortie = FileOutputStream(fichierTemp)
+            entree.transferTo(sortie)
+            return fichierTemp
+        } catch (ioException: IOException) {
+            throw ioException
+        } catch (e: Exception) {
+            throw e
+        }
+
+    }
 }

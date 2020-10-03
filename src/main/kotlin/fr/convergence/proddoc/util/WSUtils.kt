@@ -115,12 +115,12 @@ object WSUtils {
                 }
                 .blockingGet()
 
-        } catch (e: Exception) {
-            if (e.cause is TimeoutException) {
+        } catch (ex: Exception) {
+            throw if (ex.cause is TimeoutException) {
                 LOG.error("Timeout sur l'appel à myGreffe")
-                throw TimeoutException(e.message)
+                TimeoutException(ex.message)
             } else {
-                throw e
+                ex
             }
         }
 
@@ -135,7 +135,7 @@ object WSUtils {
                 )
     }
 
-    fun postMaskMessageEtRecupereOctetStream(urlOuFaireLePost: String, maskMessage: MaskMessage): InputStream {
+    fun postOctetStreamREST(urlOuFaireLePost: String, maskMessage: MaskMessage): InputStream {
         val serialize = MaskMessageSerDes().serialize("topic", maskMessage)
         return ClientBuilder.newClient()
             .target(urlOuFaireLePost)
