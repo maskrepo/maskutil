@@ -24,14 +24,13 @@ object WSUtils {
 
     private val LOG: Logger = LoggerFactory.getLogger(WSUtils::class.java)
 
-    private fun creerURLApplimyGreffe(): String {
+    private const val PATH_URL_MYGREFFE = "/convergence-greffe-web/rest"
+    // Url de myGreffe => "http://172.31.4.97:8880"
+    // Url du simulacre Outlaw => "http://localhost:8100"
+    // Url de Alain => "http://127.0.0.1:3001"
+    private const val BASE_URL_MYGREFFE = "http://localhost:8100"
 
-//        val baseURL = "http://172.31.4.97:8880"
-        val baseURL = "http://localhost:8100"
-        val pathURL = "/convergence-greffe-web/rest"
-
-        return (baseURL + pathURL)
-    }
+    private fun creerURLApplimyGreffe(): String = BASE_URL_MYGREFFE + PATH_URL_MYGREFFE
 
     /**
      * enum des différents retours possibles lros de l'appel à un WS myGreffe :
