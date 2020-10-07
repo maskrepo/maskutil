@@ -6,7 +6,7 @@ import java.io.*
 import javax.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
-object FichiersUtils {
+class FichiersUtils {
 
     private val LOG: Logger = LoggerFactory.getLogger(FichiersUtils::class.java)
 

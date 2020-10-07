@@ -4,10 +4,6 @@ import fr.convergence.proddoc.model.lib.obj.MaskMessage
 import fr.convergence.proddoc.model.lib.serdes.MaskMessageSerDes
 import io.vertx.core.logging.Logger
 import io.vertx.core.logging.LoggerFactory
-import io.vertx.reactivex.core.Vertx
-import io.vertx.reactivex.core.buffer.Buffer
-import io.vertx.reactivex.ext.web.client.HttpResponse
-import io.vertx.reactivex.ext.web.client.WebClient
 import java.io.InputStream
 import java.net.URI
 import java.util.concurrent.TimeoutException
@@ -15,6 +11,7 @@ import javax.enterprise.context.ApplicationScoped
 import javax.ws.rs.NotFoundException
 import javax.ws.rs.client.ClientBuilder
 import javax.ws.rs.client.Entity
+import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.UriBuilder
@@ -33,7 +30,7 @@ object WSUtils {
     private fun creerURLApplimyGreffe(): String = BASE_URL_MYGREFFE + PATH_URL_MYGREFFE
 
     /**
-     * enum des différents retours possibles lros de l'appel à un WS myGreffe :
+     * enum des différents retours possibles lors de l'appel à un WS myGreffe :
      * PDF ou JSON ou XML ou HTTP.Response ou alors un pointeur (comme une URL d'accès par exemple)
      */
     enum class TypeRetourWS { PDF, JSON, XML, HTTP_RESPONSE, POINTEUR }
@@ -85,35 +82,38 @@ object WSUtils {
 
     /**
      * récupère un flux en appelant un  WS rest myGreffe
-     * en entrée : l'URL
-     * en sortie : une HttpResponse
+     * en entrée : l'URI... le contenu attendu
+     * en sortie : une Response
      *        - contenant le flux, quel qu'il soit (binaire, json, xml, etc...)
      *        - avec un content-type bien renseigné
      */
-    fun <T> appelleURI(uriCible: URI, timeOut: Long = 10000, block: (resp: HttpResponse<Buffer?>) -> T): T {
+    fun appelleURI(uriCible: URI, timeOut: Long = 10000, contenuAttendu :String) : Response {
 
-        val client = WebClient.create(Vertx.vertx())
-        val retourWS: T
+        val retourWS = try {
+            // Appel de l'URI du Kbis PDF
+            var mareponse = ClientBuilder.newClient()
+                    .target(uriCible)
+                    .request(MediaType.WILDCARD)
+                    .get()
+            // peut-on gérer un timeout? à creuser
 
-        retourWS = try {
-            client.getAbs(uriCible.toASCIIString())
-                .timeout(timeOut)
-                .rxSend()
-                .map {
-                    // gestion spécifique des éventuelles erreurs qui nous intéressent
-                    // (404, 500, TimeOut...)
-                    if (it.statusCode() == Response.Status.NOT_FOUND.statusCode) {
-                        LOG.error("Document non trouvé lors de l'appel à myGreffe")
-                        throw NotFoundException(it.statusMessage())
-                    } else if (it.statusCode() == Response.Status.INTERNAL_SERVER_ERROR.statusCode) {
-                        LOG.error("Appel à myGreffe en erreur")
-                        throw IllegalStateException(it.statusMessage())
-                    } else {
-                        block.invoke(it)
-                    }
+            // si not found ou server error on lève une exception sinon on retourne le stream
+            when (mareponse.status.toString()) {
+                Response.Status.INTERNAL_SERVER_ERROR.toString() -> {
+                    LOG.error("Appel à myGreffe en erreur")
+                    throw IllegalStateException(mareponse.statusInfo.reasonPhrase)
                 }
-                .blockingGet()
-
+                Response.Status.NOT_FOUND.toString() -> {
+                    LOG.error("Document non trouvé lors de l'appel à myGreffe")
+                    throw NotFoundException(mareponse.statusInfo.reasonPhrase)
+                }
+                else -> {
+                    if (mareponse.getHeaderString(HttpHeaders.CONTENT_TYPE) != contenuAttendu) {
+                        throw IllegalStateException("Le contenu de la réponse : ${mareponse.getHeaderString(HttpHeaders.CONTENT_TYPE)} n'est pas celui attendu : $contenuAttendu" )
+                    }
+                    else mareponse
+                }
+            }
         } catch (ex: Exception) {
             throw if (ex.cause is TimeoutException) {
                 LOG.error("Timeout sur l'appel à myGreffe")
