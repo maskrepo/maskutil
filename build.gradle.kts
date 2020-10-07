@@ -1,5 +1,5 @@
-val quarkusVersion: String = "1.5.2.Final"
-val maskModelVersion: String = "1.0.2-SNAPSHOT"
+val quarkusVersion: String = "1.8.0.Final"
+val maskModelVersion: String = "1.0.3-SNAPSHOT"
 
 plugins {
     kotlin("jvm") version "1.4.10"
@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "fr.convergence.proddoc.lib"
-version = "1.0.2-SNAPSHOT"
+version = "1.0.3-SNAPSHOT"
 
 val myMavenRepoUser = "myMavenRepo"
 val myMavenRepoPassword ="mask"
@@ -48,11 +48,9 @@ publishing {
 dependencies {
     implementation("fr.convergence.proddoc.lib:mask-model:$maskModelVersion")
 
-    implementation(enforcedPlatform("io.quarkus:quarkus-bom:$quarkusVersion"))
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC")
-    implementation("io.quarkus:quarkus-rest-client")
-    implementation("io.quarkus:quarkus-vertx-web") // pour io.vertx.reactivex
-    implementation("io.quarkus:quarkus-smallrye-reactive-messaging-kafka")
+    implementation("io.quarkus:quarkus-rest-client:$quarkusVersion")
+    implementation("io.quarkus:quarkus-smallrye-reactive-messaging-kafka:$quarkusVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.2")
     testImplementation("org.assertj:assertj-core:3.12.2")
