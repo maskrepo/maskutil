@@ -11,7 +11,6 @@ class FichiersUtils {
         private val LOG = getLogger(FichiersUtils::class.java)
     }
 
-
     /**
      *    crée un fichier temporaire à partir d'un tableau de bytes
      *    et retourne un objet fichier
