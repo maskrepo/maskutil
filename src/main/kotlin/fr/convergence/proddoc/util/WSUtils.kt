@@ -33,7 +33,7 @@ object WSUtils {
      * enum des différents retours possibles lors de l'appel à un WS myGreffe :
      * PDF ou JSON ou XML ou HTTP.Response ou alors un pointeur (comme une URL d'accès par exemple)
      */
-    enum class TypeRetourWS { PDF, JSON, XML, HTTP_RESPONSE, POINTEUR }
+    enum class TypeRetourWS { PDF, JSON, XML, HTTP_RESPONSE, POINTEUR, TOPIC_MESSAGE }
 
     /**
      * Fabrique une URI à partir d'un path et d'une map de paramètres éventuels
@@ -63,6 +63,9 @@ object WSUtils {
             TypeRetourWS.POINTEUR -> {
                 uriString += "/recupererPointeur"
             }
+            TypeRetourWS.TOPIC_MESSAGE -> {
+            uriString
+        }
         }
 
         val uriWSmyGreffe: URI
@@ -97,6 +100,8 @@ object WSUtils {
                     .get()
             // peut-on gérer un timeout? à creuser
 
+            LOG.debug("L'URI suivante a été appelée : $uriCible")
+
             // si not found ou server error on lève une exception sinon on retourne le stream
             when (mareponse.status.toString()) {
                 Response.Status.INTERNAL_SERVER_ERROR.toString() -> {
@@ -108,7 +113,10 @@ object WSUtils {
                     throw NotFoundException(mareponse.statusInfo.reasonPhrase)
                 }
                 else -> {
-                    if (mareponse.getHeaderString(HttpHeaders.CONTENT_TYPE) != contenuAttendu) {
+                    if ( (mareponse.getHeaderString(HttpHeaders.CONTENT_TYPE) != contenuAttendu)
+                            && contenuAttendu != "*")   {
+                        LOG.error("contenuAttendu = $contenuAttendu")
+                        LOG.error("contenu de la réponse  = ${mareponse.getHeaderString(HttpHeaders.CONTENT_TYPE)}")
                         throw IllegalStateException("Le contenu de la réponse : ${mareponse.getHeaderString(HttpHeaders.CONTENT_TYPE)} n'est pas celui attendu : $contenuAttendu" )
                     }
                     else mareponse
