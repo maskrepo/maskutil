@@ -1,5 +1,5 @@
 val quarkusVersion: String = "1.8.0.Final"
-val maskModelVersion: String = "1.0.3-SNAPSHOT"
+val maskModelVersion: String = "1.1.0-SNAPSHOT"
 
 plugins {
     kotlin("jvm") version "1.4.10"
@@ -50,6 +50,7 @@ dependencies {
 
     implementation("io.quarkus:quarkus-rest-client:$quarkusVersion")
     implementation("io.quarkus:quarkus-smallrye-reactive-messaging-kafka:$quarkusVersion")
+
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.2")
