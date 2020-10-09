@@ -1,14 +1,15 @@
 package fr.convergence.proddoc.util
 
-import io.vertx.core.logging.Logger
-import io.vertx.core.logging.LoggerFactory
+import org.slf4j.LoggerFactory.getLogger
 import java.io.*
 import javax.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
 class FichiersUtils {
 
-    private val LOG: Logger = LoggerFactory.getLogger(FichiersUtils::class.java)
+    companion object {
+        private val LOG = getLogger(FichiersUtils::class.java)
+    }
 
     /**
      *    crée un fichier temporaire à partir d'un tableau de bytes

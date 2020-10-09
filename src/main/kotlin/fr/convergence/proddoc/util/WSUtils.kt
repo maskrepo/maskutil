@@ -2,14 +2,13 @@ package fr.convergence.proddoc.util
 
 import fr.convergence.proddoc.model.lib.obj.MaskMessage
 import fr.convergence.proddoc.model.lib.serdes.MaskMessageSerDes
-import io.vertx.core.logging.Logger
-import io.vertx.core.logging.LoggerFactory
+import org.slf4j.LoggerFactory.getLogger
 import java.io.InputStream
 import java.net.URI
 import java.util.concurrent.TimeoutException
 import javax.enterprise.context.ApplicationScoped
 import javax.ws.rs.NotFoundException
-import javax.ws.rs.client.ClientBuilder
+import javax.ws.rs.client.ClientBuilder.newClient
 import javax.ws.rs.client.Entity
 import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.MediaType
@@ -19,9 +18,10 @@ import javax.ws.rs.core.UriBuilder
 @ApplicationScoped
 object WSUtils {
 
-    private val LOG: Logger = LoggerFactory.getLogger(WSUtils::class.java)
+    private val LOG = getLogger(WSUtils::class.java)
 
     private const val PATH_URL_MYGREFFE = "/convergence-greffe-web/rest"
+
     // Url de myGreffe => "http://172.31.4.97:8880"
     // Url du simulacre Outlaw => "http://localhost:8100"
     // Url de Alain => "http://127.0.0.1:3001"
@@ -90,14 +90,14 @@ object WSUtils {
      *        - contenant le flux, quel qu'il soit (binaire, json, xml, etc...)
      *        - avec un content-type bien renseigné
      */
-    fun appelleURI(uriCible: URI, timeOut: Long = 10000, contenuAttendu :String) : Response {
+    fun appelleURI(uriCible: URI, timeOut: Long = 10000, contenuAttendu: String): Response {
 
         val retourWS = try {
             // Appel de l'URI du Kbis PDF
-            var mareponse = ClientBuilder.newClient()
-                    .target(uriCible)
-                    .request(MediaType.WILDCARD)
-                    .get()
+            var mareponse = newClient()
+                .target(uriCible)
+                .request(MediaType.WILDCARD)
+                .get()
             // peut-on gérer un timeout? à creuser
 
             LOG.debug("L'URI suivante a été appelée : $uriCible")
@@ -135,7 +135,7 @@ object WSUtils {
     }
 
     fun getOctetStreamREST(urlAbs: String): InputStream {
-        return (ClientBuilder.newClient()
+        return (newClient()
             .target(urlAbs)
             .request(MediaType.APPLICATION_OCTET_STREAM_TYPE)
             .get(InputStream::class.java)
@@ -144,7 +144,7 @@ object WSUtils {
 
     fun postOctetStreamREST(urlOuFaireLePost: String, maskMessage: MaskMessage): InputStream {
         val serialize = MaskMessageSerDes().serialize("topic", maskMessage)
-        return ClientBuilder.newClient()
+        return newClient()
             .target(urlOuFaireLePost)
             .request(MediaType.APPLICATION_OCTET_STREAM_TYPE)
             .post(Entity.entity(serialize, MediaType.APPLICATION_JSON_TYPE), InputStream::class.java)
