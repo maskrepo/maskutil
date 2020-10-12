@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "fr.convergence.proddoc.lib"
-version = "1.1.1-SNAPSHOT"
+version = "1.1.2-SNAPSHOT"
 
 
 val myMavenRepoUser = "myMavenRepo"
