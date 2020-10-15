@@ -5,15 +5,18 @@ import fr.convergence.proddoc.model.lib.serdes.MaskMessageSerDes
 import org.slf4j.LoggerFactory.getLogger
 import java.io.InputStream
 import java.net.URI
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.enterprise.context.ApplicationScoped
 import javax.ws.rs.NotFoundException
+import javax.ws.rs.client.ClientBuilder
 import javax.ws.rs.client.ClientBuilder.newClient
 import javax.ws.rs.client.Entity
 import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.UriBuilder
+
 
 @ApplicationScoped
 object WSUtils {
@@ -27,57 +30,32 @@ object WSUtils {
     // Url de Alain => "http://127.0.0.1:3001"
     private const val BASE_URL_MYGREFFE = "http://localhost:8100"
 
+    private const val TIMEOUT :Long = 2000
+
     private fun creerURLApplimyGreffe(): String = BASE_URL_MYGREFFE + PATH_URL_MYGREFFE
 
     /**
-     * enum des différents retours possibles lors de l'appel à un WS myGreffe :
-     * PDF ou JSON ou XML ou HTTP.Response ou alors un pointeur (comme une URL d'accès par exemple)
+     * Fabrique une URI myGreffe à partir d'un path et d'une map de paramètres éventuels
+     * Attention l'URL de base (le host) est définie dans la méthode creerURLApplimyGreffe
      */
-    enum class TypeRetourWS { PDF, JSON, XML, HTTP_RESPONSE, POINTEUR, TOPIC_MESSAGE }
-
-    /**
-     * Fabrique une URI à partir d'un path et d'une map de paramètres éventuels
-     * Attention l'URL de base (le host) est définie ailleurs c'est supposé est un paramètre applicatif
-     * (voir méthode creerURLApplimyGreffe)
-     */
-    fun fabriqueURI(
-        pathDuService: String = "/kbis", typeRetour: TypeRetourWS,
-        parametresRequete: Map<String, String>
+    fun fabriqueURImyGreffe(
+            pathDuService: String = "/kbis",
+            parametresRequete: Map<String, *>
     ): URI {
 
         // 1) fabriquer l'URI à partir des paramètres fournis en entrée
         var uriString = creerURLApplimyGreffe() + pathDuService
-        when (typeRetour) {
-            TypeRetourWS.PDF -> {
-                uriString += "/recupererPdf"
-            }
-            TypeRetourWS.JSON -> {
-                uriString += "/recupererJson"
-            }
-            TypeRetourWS.XML -> {
-                uriString += "/recupererXML"
-            }
-            TypeRetourWS.HTTP_RESPONSE -> {
-                uriString += "/recupererResponse"
-            }
-            TypeRetourWS.POINTEUR -> {
-                uriString += "/recupererPointeur"
-            }
-            TypeRetourWS.TOPIC_MESSAGE -> {
-            uriString
-        }
-        }
-
         val uriWSmyGreffe: URI
         val builder = UriBuilder.fromUri(uriString)
-        // parcourir la Map des paramètresp our les ajouter à l'URI :
+
+        // parcourir la Map des paramètres pour les ajouter à l'URI :
         for (param in parametresRequete) {
-            builder.queryParam(param.key, param.value)
+            builder.queryParam(param.key, param.value.toString())
         }
 
         // 2) appeler le service en fonction du retour attendu
         uriWSmyGreffe = builder.build()
-        LOG.debug("uriWSmyGreffe : $uriWSmyGreffe")
+        LOG.debug("uriWSmyGreffe fabriquée : $uriWSmyGreffe")
 
         // 3) répondre à l'appelant
         return (uriWSmyGreffe)
@@ -90,36 +68,38 @@ object WSUtils {
      *        - contenant le flux, quel qu'il soit (binaire, json, xml, etc...)
      *        - avec un content-type bien renseigné
      */
-    fun appelleURI(uriCible: URI, timeOut: Long = 10000, contenuAttendu: String): Response {
+    fun appelleURImyGreffe(uriCible: URI, timeOut: Long = TIMEOUT, contenuAttendu: String): Response {
 
         val retourWS = try {
             // Appel de l'URI du Kbis PDF
-            var mareponse = newClient()
-                .target(uriCible)
-                .request(MediaType.WILDCARD)
-                .get()
-            // peut-on gérer un timeout? à creuser
+            val monClient = ClientBuilder.newBuilder()
+                            .connectTimeout(timeOut, TimeUnit.MILLISECONDS)
+                            .build()
+            val maReponse = monClient
+                    .target(uriCible)
+                    .request(MediaType.WILDCARD)
+                    .get()
 
             LOG.debug("L'URI suivante a été appelée : $uriCible")
 
             // si not found ou server error on lève une exception sinon on retourne le stream
-            when (mareponse.status.toString()) {
+            when (maReponse.status.toString()) {
                 Response.Status.INTERNAL_SERVER_ERROR.toString() -> {
                     LOG.error("Appel à myGreffe en erreur")
-                    throw IllegalStateException(mareponse.statusInfo.reasonPhrase)
+                    throw IllegalStateException(maReponse.statusInfo.reasonPhrase)
                 }
                 Response.Status.NOT_FOUND.toString() -> {
                     LOG.error("Document non trouvé lors de l'appel à myGreffe")
-                    throw NotFoundException(mareponse.statusInfo.reasonPhrase)
+                    throw NotFoundException(maReponse.statusInfo.reasonPhrase)
                 }
                 else -> {
-                    if ( (mareponse.getHeaderString(HttpHeaders.CONTENT_TYPE) != contenuAttendu)
+                    if ( (maReponse.getHeaderString(HttpHeaders.CONTENT_TYPE) != contenuAttendu)
                             && contenuAttendu != "*")   {
                         LOG.error("contenuAttendu = $contenuAttendu")
-                        LOG.error("contenu de la réponse  = ${mareponse.getHeaderString(HttpHeaders.CONTENT_TYPE)}")
-                        throw IllegalStateException("Le contenu de la réponse : ${mareponse.getHeaderString(HttpHeaders.CONTENT_TYPE)} n'est pas celui attendu : $contenuAttendu" )
+                        LOG.error("contenu de la réponse  = ${maReponse.getHeaderString(HttpHeaders.CONTENT_TYPE)}")
+                        throw IllegalStateException("Le contenu de la réponse : ${maReponse.getHeaderString(HttpHeaders.CONTENT_TYPE)} n'est pas celui attendu : $contenuAttendu")
                     }
-                    else mareponse
+                    else maReponse
                 }
             }
         } catch (ex: Exception) {
@@ -134,6 +114,25 @@ object WSUtils {
         return retourWS
     }
 
+
+    /**
+     * fait la fabrication de l'URL + l'appel et retourne la response
+     */
+    fun demandeRestURLmyGreffe(
+            pathDuService :String,
+            parametresRequete :Map<String, *>,
+            timeOut :Long = TIMEOUT,
+            retourAttendu :String) :Response {
+
+        return (appelleURImyGreffe(fabriqueURImyGreffe(pathDuService, parametresRequete),
+                                    timeOut,
+                                    retourAttendu))
+    }
+
+
+    /**
+     * récupère un octet stream sur une url et renvoie un inputstream
+     */
     fun getOctetStreamREST(urlAbs: String): InputStream {
         return (newClient()
             .target(urlAbs)
@@ -142,6 +141,9 @@ object WSUtils {
                 )
     }
 
+    /**
+     * poste un stream et retourne un stream
+     */
     fun postOctetStreamREST(urlOuFaireLePost: String, maskMessage: MaskMessage): InputStream {
         val serialize = MaskMessageSerDes().serialize("topic", maskMessage)
         return newClient()
