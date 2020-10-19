@@ -2,6 +2,8 @@ package fr.convergence.proddoc.util
 
 import fr.convergence.proddoc.model.lib.obj.MaskMessage
 import io.smallrye.reactive.messaging.ChannelRegistry
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.eclipse.microprofile.reactive.messaging.Emitter
 import org.slf4j.LoggerFactory.getLogger
 import java.util.*

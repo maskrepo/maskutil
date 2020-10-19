@@ -28,7 +28,8 @@ object WSUtils {
     // Url de myGreffe => "http://172.31.4.97:8880"
     // Url du simulacre Outlaw => "http://localhost:8100"
     // Url de Alain => "http://127.0.0.1:3001"
-    private const val BASE_URL_MYGREFFE = "http://localhost:8100"
+    // Url si myGreffe local => http://localhost:8880
+    private const val BASE_URL_MYGREFFE = "http://localhost:8880"
 
     private const val TIMEOUT :Long = 2000
 
